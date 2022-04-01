@@ -53,7 +53,7 @@ wunit_rf_fr = pd.read_csv('./Wunit_rf_fr.csv',sep=",",encoding = "ISO-8859-1", h
 punit_ac = pd.read_csv('./Punit_ac.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 punit_cp = pd.read_csv('./Punit_cp.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
-wunit_ev =  pd.read_excel('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/EV_parameters.xlsx')
+wunit_ev =  pd.read_excel('./EV_parameters.xlsx')
 
 #ownership rates; ev is in # of EVs
 rcp = pd.read_csv('./rcp.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
