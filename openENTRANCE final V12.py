@@ -4,27 +4,19 @@ Difference between version 7 and 8 are the file locations and version 8 uses the
 Difference between version 8 and 9 is the adjustment to the circulation pump 
 Differnence between version 9 and 10 is the inclusion of heat pumps
 Difference between version 10 and 11 is the use of new EV data and fitfor55 EV scenario
+Difference between version 11 and 12 is that 12 refrences the correct shares for washing devices 
+    and changes the reference/file location of all file so that every data set that is referenced in this script is in ./openENTRANCE final data
+    Air conditioning has a new method to correct for demand exceeding installed capacity. It reduces the number of NFLH until no hours during the
+    year exceed capacity instead of the previous method which distributes the excess energy throughout the day
 
 """
 
 import pandas as pd ## necessary data analysis package
 import numpy as np ## necessary data analysis package
-from datetime import date,timedelta,datetime # for getting today's date
-import time
-import json
 import os
-#from smtplib import SMTP_SSL ## for sending emails
-#import pyam
-#import nomenclature
-#from email.MIMEMultipart import MIMEMultipart
-#from email.MIMEBase import MIMEBase
-#from email.MIMEText import MIMEText
-#import requests # for APIso
-### Set options
-#os.chdir('I:\Projekte\OpenEntrance - WV0173\Durchführungsphase\WP6\CS1\gitlab\datainputs') # set wd - change to server path - IMPORTANT
-os.chdir('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data\openENTRANCE final data')
-#os.chdir('/Users/ryanoreilly/Desktop/openENTRANCE-data/openENTRANCE final data/')
-## TEST TEST COMMMENT
+
+os.chdir('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/openENTRANCE final data')
+
 # Display 6 columns for viewing purposes
 pd.set_option('display.max_columns', 6)
 # Reduce decimal points to 2
@@ -66,18 +58,18 @@ rsh = pd.read_csv('./rsh.csv',sep=",",encoding = "ISO-8859-1", header=0, index_c
 rwh = pd.read_csv('./rwh.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 rac = pd.read_csv('./rac.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
-rev = pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/EV NUTS projectionsV5.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
-rev_fit55 = pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/EV NUTS projectionsV5_fit55.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+rev = pd.read_csv('./EV NUTS projectionsV5.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+rev_fit55 = pd.read_csv('./EV NUTS projectionsV5_fit55.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
 
 # add data for Electric Vehicles
 # electric vehicle hour shares
 # file created using R 'hourly share calculation.R'
-s_ev=pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/openENTRANCE projection/EV Hourly Charging Shares/hourlyEVshares.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+s_ev=pd.read_csv('./hourlyEVshares.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 s_ev=s_ev.drop(['Unnamed: 0'],axis=1)
 
 # add shares for Tumble Dryer, Washing Machine and Dish Washer; from Stamminger
-s_wash =pd.read_csv('./s_wash nuts.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+s_wash =pd.read_csv('./s_wash nuts_V2.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 s_wash = s_wash[s_wash['nutscode']!= "NO0B"] # remove NO0B due to missing data in other categories
 s_wash = s_wash[s_wash['nutscode']!= "MT00"] # remove MT00 due to missing data in other categories
 
@@ -85,10 +77,10 @@ s_wash = s_wash[s_wash['nutscode']!= "MT00"] # remove MT00 due to missing data i
 s_hdd =pd.read_csv('./s_hdd nutsV2.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 s_cdd=pd.read_csv('./s_cdd nutsV2.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 # add shares for CP, WH, SH, AC
-s_allelse = pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/stamminger_2009.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+s_allelse = pd.read_csv('./stamminger_2009.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
 # add share for hp
-s_hp = pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/heat_pump_hourly_share.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+s_hp = pd.read_csv('./heat_pump_hourly_share.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 s_hp.columns = ['hour',"S_HP"]
 
 # add data for yr_hdd & yr_cdd
@@ -99,10 +91,10 @@ yr_cdd=pd.read_csv('./yr_cdd nutsV2.csv',sep=",",encoding = "ISO-8859-1", header
 Q_hp_thermal =pd.read_csv('./Qhp_thermal_MWh_projected.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
 #thermal heat requirement by NTUS0 
-Q_NUTS0_thermal =pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/NUTS0_thermal_heat_annum.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+Q_NUTS0_thermal =pd.read_csv('./NUTS0_thermal_heat_annum.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
 # cop for hp by nuts 2 region
-cop = pd.read_csv("I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/temperature/NUTS2_2011_2021_COPmean.csv",sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
+cop = pd.read_csv("./NUTS2_2011_2021_COPmean.csv",sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 cop.columns = ['nutscode', 'Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'August', 'Septmber', 'October', 'November', 'December']
 # adjust excel autocorecting German NUTS2 region DEC0 to Dec-00
 cop.nutscode[cop.nutscode=="Dec-00"] = 'DEC0'
@@ -257,14 +249,12 @@ yr_cdd = yr_cdd.drop(['nutscode','month'],axis=1) #TIME is dropped from axis; or
 yr_hdd.index = yr_hdd['nutscode']
 yr_hdd = yr_hdd.drop(['nutscode','month'],axis=1) #TIME is dropped from axis; order of months is maintained
 
+s_wash = s_wash.merge(temp)
 
 # create index for representative hours for each nuts 2 region
-#!!!!!! adjust this
-#time = pd.read_csv('/Users/ryanoreilly/Desktop/openENTRANCE-data/Clean_data.csv', sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
-time = pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/flexibilities file reference/Clean_data.csv', sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
-time = time[time.nutscode == 'AT11'] # AT11 is chosen arbitrarily
-time = pd.DataFrame(time[['time','hour']])
+time = pd.read_csv('./time_index.csv', sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
+# s_wash is arbitrarily chosen to create index
 index = s_wash[['nutscode','country','hour']]
 index = index.reset_index()   
 index = index.drop('index', axis=1)
@@ -443,22 +433,11 @@ for i in range(2018,2051):
     columns.append(str(i))
 d_AC = pd.DataFrame(index = index, columns = columns)   
 p_AC = pd.DataFrame(index = index, columns = columns)  
- 
-#!!!!!!!!!!!!!!!!!!! change 
-#s_allelse = pd.read_csv('./stamminger_2009.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False) 
 
 s_ac =s_allelse.S_AC # hour share of daily demand
 s_ac2 = s_ac
 s_ac = s_ac.append([s_ac]*11,ignore_index=True)
-'''
-#create sequence for hours in representative year
-hour = pd.Series(range(0,24))
-hour = hour.append([pd.Series(range(0,24))]*((11)),ignore_index=True)
-test['houryr'] = list(temp2)
-#create sequence for months in representative year
-month = list(pd.Series(range(1,13)))*24
-month.sort()
-'''
+
 for row in range(1,len(set(index['nutscode']))+1):
     print(row)
     region = d_AC.index[(row-1)*288][0]
@@ -467,6 +446,7 @@ for row in range(1,len(set(index['nutscode']))+1):
     NFLH_AC = nflh_ac.loc[region]
     RAC = rac.loc[region]
     S_CDD = s_cdd.loc[region] 
+    # set constraint that NFLH_AC*PUNIT_AC*NHH*RAC*S_CDD <= .75*(NFLH_AC*PUNIT_AC*NHH*RAC/1000   *S_CDD)
     #FOR HOURLY DEMAND
     temp = NFLH_AC*PUNIT_AC*NHH*RAC*S_CDD/1/30/1000 # daily
     temp['month']= range(1,13)
@@ -476,6 +456,34 @@ for row in range(1,len(set(index['nutscode']))+1):
     temp = temp.drop(['index','month'],axis=1)
     for yr in range(0,temp.shape[1]): # convert from daily to hourly
         temp.iloc[0:288,yr] = temp.iloc[0:288,yr]*s_ac    
+    # check and see if limit has been violated    
+    check_limit = {'max_NUTS2':list(PUNIT_AC*NHH*RAC/1000),'observed_max':list(temp.max())}
+    adj_nflh = pd.DataFrame(data = check_limit)
+    adj_nflh['gt'] = adj_nflh['max_NUTS2'] <= adj_nflh['observed_max']
+    adj_nflh['NFLH_AC'] = list(NFLH_AC)
+    count = 0
+    adj_nflh['adj_nflh'] = list(NFLH_AC)
+    while True in list(adj_nflh['gt']):
+        count +=1
+        print("Iteration", count)
+        adj_nflh['nflh_change'] = 0
+        adj_nflh['nflh_change'][adj_nflh['gt']== True] = 1
+        adj_nflh['adj_nflh'] = adj_nflh['adj_nflh'] - adj_nflh['nflh_change']
+        NFLH_AC2 = adj_nflh['adj_nflh']
+        NFLH_AC2.index = NFLH_AC.index
+        #FOR HOURLY DEMAND
+        temp = NFLH_AC2*PUNIT_AC*NHH*RAC*S_CDD/1/30/1000 # daily
+        temp['month']= range(1,13)
+        temp = temp.append([temp]*23,ignore_index=True)
+        temp = temp.sort_values(by='month')
+        temp = temp.reset_index()
+        temp = temp.drop(['index','month'],axis=1)
+        for yr in range(0,temp.shape[1]): # convert from daily to hourly
+            temp.iloc[0:288,yr] = temp.iloc[0:288,yr]*s_ac    
+        # check and see if limit has been violated    
+        adj_nflh['observed_max'] = list(temp.max())
+        adj_nflh['gt'] = adj_nflh['max_NUTS2'] <= adj_nflh['observed_max']
+    nflh_ac.loc[region] =   list(adj_nflh['adj_nflh'])  
     low = (row-1)*288
     high = row*288
     for year in range(2018-2018,2050+1-2018):
@@ -519,9 +527,10 @@ for i in range(0, p_AC.shape[0]):
     p_AC['nutscode'][i] = p_AC.index[i][0]
     p_AC['TIME'][i] = p_AC.index[i][3]   
     
-#p_AC.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/theoretical potential/p_ACV6.csv')       
-#d_AC.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/theoretical potential/d_ACV6.csv')     
-  
+p_AC.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/theoretical potential/p_ACV7.csv')       
+d_AC.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/theoretical potential/d_ACV7.csv')     
+#write out put of the nflh algorithm to file
+nflh_ac.to_csv(r'./nflh_ac_adj.csv')    
 #p_AC = pd.read_csv(r'/Users/ryanoreilly/Desktop/openENTRANCE-data/temp_ac/p_ACV6.csv')       
 #d_AC = pd.read_csv(r'/Users/ryanoreilly/Desktop/openENTRANCE-data/temp_ac/d_ACV6.csv') 
 #d_AC = d_AC.drop(['Unnamed: 0'],axis=1)
