@@ -1,2 +1,2 @@
 # python-files_git
- all python files
+Python files for the ongoing openENTRANCE Case Study 1 - Residential demand response potentials. 
