@@ -68,8 +68,8 @@ stamminger_F=pd.merge(wm,dw, on = ["hour","Country"])
 stamminger_F.columns=['country', 'Appliance', 'Power sum in Wh', 'hour', 'value', 'S_WM','S_DW']  
 stamminger_F=stamminger_F.drop(   ['Appliance','Power sum in Wh','value'],axis=1)
 stamminger_F=pd.merge(stamminger_F,td, on = ["hour"])
-    
-#stamminger_F.to_csv(r'stamminger_11.23.csv')
+stamminger_Fwide =stamminger_F.pivot(index='hour', columns='country', values=['S_WM','S_DW','S_TD'])
+stamminger_Fwide.to_csv(r'stamminger_to_latex.csv')
 
 ########################
 # create shares on the NUTS2 leve

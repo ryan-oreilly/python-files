@@ -2,7 +2,8 @@
 """
 projection of HP thermal  energy demand 
 assumes a linear decomposition of non RE non EE heating products thermal energy into HP thermal energy demand
-
+---
+new reference of HP_transitionV2.csv
 """
 
 import pandas as pd ## necessary data analysis package
@@ -12,7 +13,7 @@ import openpyxl as xl
 
 
 # read in assumptions for HP
-df = pd.read_csv("I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/HP_transition.csv", sep=",",encoding = "ISO-8859-1", header=0, index_col=False)
+df = pd.read_csv("I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/HP_transitionV2.csv", sep=",",encoding = "ISO-8859-1", header=0, index_col=False)
 df.HP_thermal_2019[df.country =="CH"] = df.HP_thermal_2018[df.country =="CH"]
 df.columns = ('#', 'country', 'final_energy_15-19',
        'final_energy_15-19_nonEE', 'Total_nonEE_thermal',
@@ -90,7 +91,7 @@ for nuts in range(0,len(nhhV2.nutscode)):
         d_HP2.iloc[nuts,year] = temp_country[year]*temp_share
         
         
-d_HP2.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/openENTRANCE final data/Qhp_thermal_MWh_projected.csv')  
+d_HP2.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/openENTRANCE final data/Qhp_thermal_MWh_projectedV2.csv')  
         
         
         
