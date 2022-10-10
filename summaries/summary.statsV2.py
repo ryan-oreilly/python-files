@@ -11,28 +11,46 @@ from datetime import date,timedelta,datetime # for getting today's date
 import matplotlib.pyplot as plt
 import re
 
-df = pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/theoretical potential/Full_potential.V6.country.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False)#
+df = pd.read_csv('I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/data/theoretical potential/Full_potential.V9.country.csv',sep=",",encoding = "ISO-8859-1", header=0, index_col=False)#
+#set(df.variable)
+#df = df[df['variable']!= 'Demand Response|Maximum Dispatch|Load Shifting|Electricity|Residential|Electric Vehicle_55']
+#df = df[df['variable']!= 'Demand Response|Maximum Reduction|Load Shifting|Electricity|Residential|Electric Vehicle_55']
 
+
+
+# whole sample summary
+df_sample_sum = df.groupby(['subannual','variable'], as_index = False).sum()
+df_sample_sum['type'] = ""
+for row in range(0,df_sample_sum.shape[0]):
+    print(row)
+    df_sample_sum['type'][row] = df_sample_sum.variable[row][16:33]
+
+df_sample_sum = df_sample_sum[df_sample_sum['type'] == 'Maximum Reduction']
+df_sample_sum.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/sample_q_red_by_device.csv')   
+
+
+# country level summaries
 df_yr_sum = df.groupby(['region','variable'], as_index = False).sum()
 
 df_yr_sum['type'] = ""
-for row in range(0,600):
+for row in range(0,df_yr_sum.shape[0]):
     print(row)
     df_yr_sum['type'][row] = df_yr_sum.variable[row][16:33]
     
 df_yr_sum_red = df_yr_sum[df_yr_sum['type'] == 'Maximum Reduction']
 df_yr_sum_red['device'] = ""
 df_yr_sum_red = df_yr_sum_red.reset_index()
-for row in range(0,300):
+for row in range(0,df_yr_sum_red.shape[0]):
     print(row)
     df_yr_sum_red['device'][row] = df_yr_sum_red.variable[row][72:]
     
 df_yr_sum_dis = df_yr_sum[df_yr_sum['type'] == 'Maximum Dispatch|']
 df_yr_sum_dis['device'] = ""
 df_yr_sum_dis = df_yr_sum_dis.reset_index()
-for row in range(0,300):
+for row in range(0,df_yr_sum_dis.shape[0]):
     print(row)
     df_yr_sum_dis['device'][row] = df_yr_sum_dis.variable[row][71:]    
+
 
 # create  df template
 columns = []
@@ -47,37 +65,41 @@ index_dis = df_yr_sum_dis[['region','device']]
 # =============================================================================
 
 conv = 365/12
-total_year_red = df_yr_sum_red.iloc[0:300,3:36]*conv
+total_year_red = df_yr_sum_red.iloc[0:df_yr_sum_red.shape[0],3:36]*conv
 total_year_red = index_red.join(total_year_red)
  
-total_year_dis = df_yr_sum_dis.iloc[0:300,3:36]*conv
+total_year_dis = df_yr_sum_dis.iloc[0:df_yr_sum_dis.shape[0],3:36]*conv
 total_year_dis = index_dis.join(total_year_dis)
 
-total_year_red.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Q_red_device_yearV2.csv')   
+total_year_red.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Q_red_device_yearV4.csv')   
 
-total_year_dis.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Q_dis_device_yearV2.csv')   
+total_year_dis.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Q_dis_device_yearV4.csv')   
 
 
 # annual demanded by country
-country_yr_sum = df.groupby(['region'], as_index = False).sum()
-country_yr_sum.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Q_country_yearV2.csv')   
+# remove EV fit
+total_year_red = total_year_red[total_year_red['device']!= 'Electric Vehicle_55']
+total_year_dis = total_year_dis[total_year_dis['device']!= 'Electric Vehicle_55']
+country_yr_sum_red = total_year_red.groupby(['region'], as_index = False).sum()
+
+country_yr_sum_red.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Q_country_yearV4.csv')   
 
 # =============================================================================
 # convert from representative hours to average reduction and discharge potentials
 # =============================================================================
 # average reduction potential
 
-average_red_hour = df_yr_sum_red.iloc[0:300,3:36]/288
+average_red_hour = df_yr_sum_red.iloc[0:df_yr_sum_red.shape[0],3:36]/288
 average_red_hour = index_red.join(average_red_hour)
 
 # average increase potential - does not consider inc
 
-average_dis_hour = df_yr_sum_dis.iloc[0:300,3:36]/288
+average_dis_hour = df_yr_sum_dis.iloc[0:df_yr_sum_dis.shape[0],3:36]/288
 average_dis_hour = index_dis.join(average_dis_hour)
 
-average_red_hour.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Ave_red_device_yearV2.csv')   
+average_red_hour.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Ave_red_device_yearV4.csv')   
 
-average_dis_hour.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Ave_dis_device_yearV2.csv')   
+average_dis_hour.to_csv(r'I:/Projekte/OpenEntrance - WV0173/Durchführungsphase/WP6/CS1/OE_data_analysis/openEntrance/OE_validation/OE_data/Ave_dis_device_yearV4.csv')   
 
 del average_dis_hour
 del average_red_hour
@@ -157,7 +179,7 @@ for region in country_profile_red.region.unique():
         
         plt.stackplot(range(0,288), 
                       pivoted_temp['AC'],
-                      pivoted_NO['CP'],  
+                      pivoted_temp['CP'],  
                       pivoted_temp['DW'],
                       pivoted_temp['TD'],
                       pivoted_temp['EV'],
@@ -216,6 +238,7 @@ sample_profile_red_group2030 = sample_profile_red_group[['subannual','variable',
 sample_profile_red_group2030['2030'] = sample_profile_red_group2030['2030']/1000
 sample_profile_red_group2030 = sample_profile_red_group2030.pivot(index = 'subannual', columns = 'variable')
 sample_profile_red_group2030.columns=['AC','CP','DW', 'TD','EV','HP','Ref','SH','WM','WH']
+sample_profile_red_group2030['hour_sum'] = sample_profile_red_group2030.sum(axis=1)
 
 plt.stackplot(range(0,288), 
               sample_profile_red_group2030['AC'],
